@@ -24,7 +24,7 @@ class TestDatabase:
             pool_size=3,
             host="localhost",
             user="root",
-            password="root",
+            password="",
             database="student_details",
         )
 

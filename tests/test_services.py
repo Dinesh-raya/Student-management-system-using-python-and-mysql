@@ -41,6 +41,13 @@ class TestStudentService:
         with pytest.raises(ValidationError, match="Mother's name is required"):
             service.create_student(student)
 
+    def test_create_student_empty_phone_raises(self, service):
+        student = Student(
+            roll_no=1, name="John", father_name="James", mother_name="Jane", phone_no=""
+        )
+        with pytest.raises(ValidationError, match="Phone number is required"):
+            service.create_student(student)
+
     def test_create_student_invalid_phone_raises(self, service):
         student = Student(
             roll_no=1, name="John", father_name="James", mother_name="Jane", phone_no="123"
@@ -74,6 +81,20 @@ class TestStudentService:
         mock_repo.get_all.return_value = [Student(roll_no=1), Student(roll_no=2)]
         result = service.list_students()
         assert len(result) == 2
+
+    def test_update_valid_student(self, service, mock_repo):
+        student = Student(
+            roll_no=1, name="John", father_name="James", mother_name="Jane",
+            address="123 Main St", phone_no="1234567890", email="john@example.com",
+        )
+        result = service.update_student(student)
+        mock_repo.update.assert_called_once_with(student)
+        assert result == student
+
+    def test_update_student_empty_name_raises(self, service):
+        student = Student(roll_no=1, name="", father_name="James", mother_name="Jane")
+        with pytest.raises(ValidationError, match="Name is required"):
+            service.update_student(student)
 
     def test_delete_student(self, service, mock_repo):
         service.delete_student(1)
@@ -139,6 +160,21 @@ class TestExamService:
         mock_repo.get_all.return_value = [Exam(id=1), Exam(id=2)]
         result = service.list_exams()
         assert len(result) == 2
+
+    def test_update_valid_exam(self, service, mock_repo):
+        exam = Exam(
+            roll_no=1, name="John", class_=10, section="A",
+            total_marks=500, percentage=85.5, grade="A"
+        )
+        result = service.update_exam(exam)
+        mock_repo.update.assert_called_once_with(exam)
+        assert result == exam
+
+    def test_update_exam_invalid_grade_raises(self, service):
+        exam = Exam(roll_no=1, name="John", class_=10, section="A",
+                    total_marks=500, percentage=85.5, grade="Z")
+        with pytest.raises(ValidationError, match="Grade must be one of"):
+            service.update_exam(exam)
 
     def test_delete_exam(self, service, mock_repo):
         service.delete_exam(1)

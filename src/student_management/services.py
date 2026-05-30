@@ -19,7 +19,9 @@ class StudentService:
             raise ValidationError("Father's name is required")
         if not student.mother_name.strip():
             raise ValidationError("Mother's name is required")
-        if student.phone_no and not re.match(r"^\d{10,15}$", student.phone_no):
+        if not student.phone_no.strip():
+            raise ValidationError("Phone number is required")
+        if not re.match(r"^\d{10,15}$", student.phone_no):
             raise ValidationError("Phone number must be 10-15 digits")
         if student.email and not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", student.email):
             raise ValidationError("Invalid email format")

@@ -9,7 +9,7 @@ class DatabaseConfig:
 
     host: str = "localhost"
     user: str = "root"
-    password: str = "root"
+    password: str = ""
     database: str = "student_details"
     pool_size: int = 5
 
@@ -19,7 +19,7 @@ def get_config() -> DatabaseConfig:
     return DatabaseConfig(
         host=os.getenv("DB_HOST", "localhost"),
         user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "root"),
+        password=os.getenv("DB_PASSWORD", ""),
         database=os.getenv("DB_NAME", "student_details"),
         pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
     )

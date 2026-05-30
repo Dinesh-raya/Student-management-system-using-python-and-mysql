@@ -27,8 +27,12 @@ def main() -> None:
     print("Connected to database successfully!")
 
     while True:
-        Menu.display()
-        choice = Menu.get_choice()
+        try:
+            Menu.display()
+            choice = Menu.get_choice()
+        except KeyboardInterrupt:
+            print("\nThank you for using Student Management System!")
+            sys.exit(0)
 
         try:
             if choice == 1:

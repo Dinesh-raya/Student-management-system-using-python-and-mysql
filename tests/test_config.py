@@ -9,12 +9,16 @@ class TestDatabaseConfig:
     """Test DatabaseConfig dataclass."""
 
     def test_default_values(self):
-        config = DatabaseConfig()
-        assert config.host == "localhost"
-        assert config.user == "root"
-        assert config.password == "root"
-        assert config.database == "student_details"
-        assert config.pool_size == 5
+        env_keys = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_POOL_SIZE"]
+        with patch.dict(os.environ, {}, clear=False):
+            for k in env_keys:
+                os.environ.pop(k, None)
+            config = DatabaseConfig()
+            assert config.host == "localhost"
+            assert config.user == "root"
+            assert config.password == ""
+            assert config.database == "student_details"
+            assert config.pool_size == 5
 
     def test_custom_values(self):
         config = DatabaseConfig(
