@@ -1,8 +1,8 @@
 """Tests for service layer."""
 import pytest
 from unittest.mock import MagicMock
-from student_management.services import StudentService
-from student_management.models import Student
+from student_management.services import StudentService, ExamService
+from student_management.models import Student, Exam
 from student_management.exceptions import ValidationError
 
 
@@ -77,4 +77,69 @@ class TestStudentService:
 
     def test_delete_student(self, service, mock_repo):
         service.delete_student(1)
+        mock_repo.delete.assert_called_once_with(1)
+
+
+class TestExamService:
+    """Test ExamService business logic."""
+
+    @pytest.fixture
+    def mock_repo(self):
+        return MagicMock()
+
+    @pytest.fixture
+    def service(self, mock_repo):
+        return ExamService(mock_repo)
+
+    def test_create_valid_exam(self, service, mock_repo):
+        exam = Exam(
+            roll_no=1, name="John", class_=10, section="A",
+            total_marks=500, percentage=85.5, grade="A"
+        )
+        service.create_exam(exam)
+        mock_repo.create.assert_called_once_with(exam)
+
+    def test_create_exam_invalid_class_raises(self, service):
+        exam = Exam(roll_no=1, name="John", class_=0, section="A",
+                    total_marks=500, percentage=85.5, grade="A")
+        with pytest.raises(ValidationError, match="Class must be a positive integer"):
+            service.create_exam(exam)
+
+    def test_create_exam_empty_section_raises(self, service):
+        exam = Exam(roll_no=1, name="John", class_=10, section="",
+                    total_marks=500, percentage=85.5, grade="A")
+        with pytest.raises(ValidationError, match="Section is required"):
+            service.create_exam(exam)
+
+    def test_create_exam_negative_marks_raises(self, service):
+        exam = Exam(roll_no=1, name="John", class_=10, section="A",
+                    total_marks=-1, percentage=85.5, grade="A")
+        with pytest.raises(ValidationError, match="Total marks must be positive"):
+            service.create_exam(exam)
+
+    def test_create_exam_invalid_percentage_raises(self, service):
+        exam = Exam(roll_no=1, name="John", class_=10, section="A",
+                    total_marks=500, percentage=101, grade="A")
+        with pytest.raises(ValidationError, match="Percentage must be between 0 and 100"):
+            service.create_exam(exam)
+
+    def test_create_exam_invalid_grade_raises(self, service):
+        exam = Exam(roll_no=1, name="John", class_=10, section="A",
+                    total_marks=500, percentage=85.5, grade="Z")
+        with pytest.raises(ValidationError, match="Grade must be one of"):
+            service.create_exam(exam)
+
+    def test_get_exam(self, service, mock_repo):
+        expected = Exam(roll_no=1, name="John")
+        mock_repo.get_by_roll_no.return_value = expected
+        result = service.get_exam(1)
+        assert result == expected
+
+    def test_list_exams(self, service, mock_repo):
+        mock_repo.get_all.return_value = [Exam(id=1), Exam(id=2)]
+        result = service.list_exams()
+        assert len(result) == 2
+
+    def test_delete_exam(self, service, mock_repo):
+        service.delete_exam(1)
         mock_repo.delete.assert_called_once_with(1)
