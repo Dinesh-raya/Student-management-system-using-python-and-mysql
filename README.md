@@ -1,18 +1,103 @@
-**Student Management System using Python and MySQL**  
-Description: Student Management System is basically a program that helps in keeping the records of the students and their examination details.
-In this project, I have used the basic concept of Python and MySQL like- functions, loop, MySQLCursor of mysql-connector-python, and different sql commands.
-I have used the mysql-connector library. MySQL Connector is the official Oracle-supported driver to connect MySQL through Python.  
+# Student Management System
 
-It includes 8 modules:  
-1- Add Student Details  
-2- Display Student Details  
-3- Update Student Details  
-4- Delete Student Details  
-5- Add Student Examination Details  
-6- Display Student Examination Details  
-7- Update Student Examination Details  
-8- Delete Student Examination Details  
+A production-grade CLI application for managing student and examination records, built with Python and MySQL.
 
-Note: If your system already contains Python and MySQL, install the mysql connector module to connect MySQL through Python.
-      mysql-connector method can be installed with the use of following command line:  
-      **pip install mysql-connector-python**  
+## Features
+
+- Add, view, update, and delete student records
+- Add, view, update, and delete examination records
+- Input validation and error handling
+- Connection pooling for database efficiency
+- PrettyTable formatted output
+- Environment-based configuration
+
+## Prerequisites
+
+- Python 3.10+
+- MySQL Server 8.0+
+- pip
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Dinesh-raya/Student-management-system-using-python-and-mysql.git
+   cd Student-management-system-using-python-and-mysql
+   ```
+
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+4. Set up the database:
+   ```bash
+   mysql -u root -p < schema.sql
+   ```
+
+5. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database credentials
+   ```
+
+## Usage
+
+Run the application:
+```bash
+python -m student_management
+```
+
+Or use the installed script:
+```bash
+student-management
+```
+
+## Development
+
+### Running Tests
+
+```bash
+pytest
+```
+
+With coverage:
+```bash
+pytest --cov=student_management
+```
+
+### Project Structure
+
+```
+src/student_management/
+├── __init__.py          # Package initialization
+├── __main__.py          # Entry point
+├── config.py            # Configuration management
+├── db.py                # Database connection pooling
+├── models.py            # Data models (Student, Exam)
+├── repositories.py      # SQL operations
+├── services.py          # Business logic and validation
+├── ui.py                # User interface
+└── exceptions.py        # Custom exceptions
+```
+
+## Architecture
+
+The application follows a layered architecture:
+
+1. **UI Layer** (`ui.py`) — Handles all user input/output
+2. **Service Layer** (`services.py`) — Business logic and validation
+3. **Repository Layer** (`repositories.py`) — Database operations
+4. **Database Layer** (`db.py`) — Connection management
+
+Each layer only depends on layers below it, ensuring clean separation of concerns.
+
+## License
+
+MIT
