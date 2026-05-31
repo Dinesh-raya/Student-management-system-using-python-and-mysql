@@ -2,3 +2,4 @@ streamlit>=1.30.0
 prettytable>=3.0
 python-dotenv>=1.0
 pytest>=8.0
+plotly>=5.18.0

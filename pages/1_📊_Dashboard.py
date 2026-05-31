@@ -5,6 +5,8 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import streamlit as st
+import plotly.express as px
+import pandas as pd
 from app import get_services
 
 
@@ -44,7 +46,20 @@ def main():
             grade_counts = {}
             for grade in ["A", "B", "C", "D", "F"]:
                 grade_counts[grade] = sum(1 for e in exams if e.grade == grade)
-            st.bar_chart(grade_counts)
+            grade_df = pd.DataFrame({
+                "Grade": list(grade_counts.keys()),
+                "Count": list(grade_counts.values()),
+            })
+            fig = px.bar(
+                grade_df,
+                x="Grade",
+                y="Count",
+                color="Grade",
+                color_discrete_map={"A": "#4CAF50", "B": "#2196F3", "C": "#FF9800", "D": "#F44336", "F": "#9C27B0"},
+                title="Grade Distribution",
+            )
+            fig.update_layout(showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No exam data yet.")
 
@@ -55,7 +70,19 @@ def main():
             for e in exams:
                 key = f"Class {e.class_}"
                 class_counts[key] = class_counts.get(key, 0) + 1
-            st.bar_chart(class_counts)
+            class_df = pd.DataFrame({
+                "Class": list(class_counts.keys()),
+                "Count": list(class_counts.values()),
+            })
+            fig = px.bar(
+                class_df,
+                x="Class",
+                y="Count",
+                color="Class",
+                title="Class Distribution",
+            )
+            fig.update_layout(showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No exam data yet.")
 
