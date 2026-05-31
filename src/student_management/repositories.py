@@ -14,14 +14,14 @@ class StudentRepository:
         """Insert a new student. Raises DuplicateError if roll_no exists."""
         with self.db.cursor() as cursor:
             cursor.execute(
-                "SELECT roll_no FROM student WHERE roll_no=%s", (student.roll_no,)
+                "SELECT roll_no FROM student WHERE roll_no=?", (student.roll_no,)
             )
             if cursor.fetchone():
                 raise DuplicateError(f"Roll number {student.roll_no} already exists")
 
             cursor.execute(
                 "INSERT INTO student (roll_no, name, father_name, mother_name, address, phone_no, email) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     student.roll_no,
                     student.name,
@@ -38,7 +38,7 @@ class StudentRepository:
         with self.db.cursor() as cursor:
             cursor.execute(
                 "SELECT roll_no, name, father_name, mother_name, address, phone_no, email "
-                "FROM student WHERE roll_no=%s",
+                "FROM student WHERE roll_no=?",
                 (roll_no,),
             )
             row = cursor.fetchone()
@@ -78,14 +78,14 @@ class StudentRepository:
         """Update an existing student. Raises NotFoundError if not found."""
         with self.db.cursor() as cursor:
             cursor.execute(
-                "SELECT roll_no FROM student WHERE roll_no=%s", (student.roll_no,)
+                "SELECT roll_no FROM student WHERE roll_no=?", (student.roll_no,)
             )
             if not cursor.fetchone():
                 raise NotFoundError(f"Student with roll number {student.roll_no} not found")
 
             cursor.execute(
-                "UPDATE student SET name=%s, father_name=%s, mother_name=%s, "
-                "address=%s, phone_no=%s, email=%s WHERE roll_no=%s",
+                "UPDATE student SET name=?, father_name=?, mother_name=?, "
+                "address=?, phone_no=?, email=? WHERE roll_no=?",
                 (
                     student.name,
                     student.father_name,
@@ -101,12 +101,12 @@ class StudentRepository:
         """Delete a student. Raises NotFoundError if not found."""
         with self.db.cursor() as cursor:
             cursor.execute(
-                "SELECT roll_no FROM student WHERE roll_no=%s", (roll_no,)
+                "SELECT roll_no FROM student WHERE roll_no=?", (roll_no,)
             )
             if not cursor.fetchone():
                 raise NotFoundError(f"Student with roll number {roll_no} not found")
 
-            cursor.execute("DELETE FROM student WHERE roll_no=%s", (roll_no,))
+            cursor.execute("DELETE FROM student WHERE roll_no=?", (roll_no,))
 
 
 class ExamRepository:
@@ -120,21 +120,21 @@ class ExamRepository:
         with self.db.cursor() as cursor:
             # Verify student exists
             cursor.execute(
-                "SELECT roll_no FROM student WHERE roll_no=%s", (exam.roll_no,)
+                "SELECT roll_no FROM student WHERE roll_no=?", (exam.roll_no,)
             )
             if not cursor.fetchone():
                 raise NotFoundError(f"Student with roll number {exam.roll_no} not found")
 
             # Check for existing exam
             cursor.execute(
-                "SELECT roll_no FROM exam WHERE roll_no=%s", (exam.roll_no,)
+                "SELECT roll_no FROM exam WHERE roll_no=?", (exam.roll_no,)
             )
             if cursor.fetchone():
                 raise DuplicateError(f"Exam record for roll number {exam.roll_no} already exists")
 
             cursor.execute(
                 "INSERT INTO exam (roll_no, name, class, section, total_marks, percentage, grade) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     exam.roll_no,
                     exam.name,
@@ -151,7 +151,7 @@ class ExamRepository:
         with self.db.cursor() as cursor:
             cursor.execute(
                 "SELECT id, roll_no, name, class, section, total_marks, percentage, grade "
-                "FROM exam WHERE roll_no=%s",
+                "FROM exam WHERE roll_no=?",
                 (roll_no,),
             )
             row = cursor.fetchone()
@@ -193,14 +193,14 @@ class ExamRepository:
         """Update an exam record. Raises NotFoundError if not found."""
         with self.db.cursor() as cursor:
             cursor.execute(
-                "SELECT roll_no FROM exam WHERE roll_no=%s", (exam.roll_no,)
+                "SELECT roll_no FROM exam WHERE roll_no=?", (exam.roll_no,)
             )
             if not cursor.fetchone():
                 raise NotFoundError(f"Exam record for roll number {exam.roll_no} not found")
 
             cursor.execute(
-                "UPDATE exam SET name=%s, class=%s, section=%s, total_marks=%s, "
-                "percentage=%s, grade=%s WHERE roll_no=%s",
+                "UPDATE exam SET name=?, class=?, section=?, total_marks=?, "
+                "percentage=?, grade=? WHERE roll_no=?",
                 (
                     exam.name,
                     exam.class_,
@@ -216,9 +216,9 @@ class ExamRepository:
         """Delete an exam record. Raises NotFoundError if not found."""
         with self.db.cursor() as cursor:
             cursor.execute(
-                "SELECT roll_no FROM exam WHERE roll_no=%s", (roll_no,)
+                "SELECT roll_no FROM exam WHERE roll_no=?", (roll_no,)
             )
             if not cursor.fetchone():
                 raise NotFoundError(f"Exam record for roll number {roll_no} not found")
 
-            cursor.execute("DELETE FROM exam WHERE roll_no=%s", (roll_no,))
+            cursor.execute("DELETE FROM exam WHERE roll_no=?", (roll_no,))
