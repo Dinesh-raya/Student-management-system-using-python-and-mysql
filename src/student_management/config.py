@@ -7,19 +7,11 @@ from dataclasses import dataclass
 class DatabaseConfig:
     """Database connection configuration."""
 
-    host: str = "localhost"
-    user: str = "root"
-    password: str = ""
-    database: str = "student_details"
-    pool_size: int = 5
+    db_path: str = "student_management.db"
 
 
 def get_config() -> DatabaseConfig:
     """Load configuration from environment variables with defaults."""
     return DatabaseConfig(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", ""),
-        database=os.getenv("DB_NAME", "student_details"),
-        pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
+        db_path=os.getenv("DB_PATH", "student_management.db"),
     )

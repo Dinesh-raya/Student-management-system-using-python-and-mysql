@@ -1,76 +1,99 @@
 """Tests for database connection module."""
+import os
+import sqlite3
 import pytest
-from unittest.mock import patch, MagicMock
 from student_management.db import Database
 from student_management.config import DatabaseConfig
 from student_management.exceptions import DatabaseError
 
 
 class TestDatabase:
-    """Test Database connection manager."""
+    """Test Database connection manager with SQLite."""
 
-    def test_init_stores_config(self):
-        config = DatabaseConfig()
+    @pytest.fixture
+    def tmp_db_path(self, tmp_path):
+        return str(tmp_path / "test.db")
+
+    @pytest.fixture
+    def config(self, tmp_db_path):
+        return DatabaseConfig(db_path=tmp_db_path)
+
+    def test_init_stores_config(self, config, tmp_db_path):
         db = Database(config)
         assert db.config == config
+        assert db.config.db_path == tmp_db_path
 
-    @patch("student_management.db.mysql.connector.pooling.MySQLConnectionPool")
-    def test_initialize_creates_pool(self, mock_pool_class):
-        config = DatabaseConfig(pool_size=3)
+    def test_initialize_creates_database_file(self, config, tmp_db_path):
         db = Database(config)
         db.initialize()
-        mock_pool_class.assert_called_once_with(
-            pool_name="student_pool",
-            pool_size=3,
-            host="localhost",
-            user="root",
-            password="",
-            database="student_details",
-        )
+        assert os.path.exists(tmp_db_path)
 
-    @patch("student_management.db.mysql.connector.pooling.MySQLConnectionPool")
-    def test_initialize_raises_database_error_on_failure(self, mock_pool_class):
-        mock_pool_class.side_effect = Exception("Connection refused")
-        config = DatabaseConfig()
-        db = Database(config)
-        with pytest.raises(DatabaseError, match="Failed to initialize connection pool"):
-            db.initialize()
-
-    @patch("student_management.db.mysql.connector.pooling.MySQLConnectionPool")
-    def test_get_connection_returns_connection(self, mock_pool_class):
-        mock_pool = MagicMock()
-        mock_conn = MagicMock()
-        mock_pool.get_connection.return_value = mock_conn
-        mock_pool_class.return_value = mock_pool
-
-        config = DatabaseConfig()
+    def test_initialize_creates_students_table(self, config):
         db = Database(config)
         db.initialize()
-        conn = db.get_connection()
-        assert conn == mock_conn
+        with db.cursor() as cursor:
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='students'"
+            )
+            assert cursor.fetchone() is not None
 
-    @patch("student_management.db.mysql.connector.pooling.MySQLConnectionPool")
-    def test_get_connection_raises_if_not_initialized(self, mock_pool_class):
-        config = DatabaseConfig()
+    def test_initialize_creates_exams_table(self, config):
+        db = Database(config)
+        db.initialize()
+        with db.cursor() as cursor:
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='exams'"
+            )
+            assert cursor.fetchone() is not None
+
+    def test_initialize_is_idempotent(self, config):
+        db = Database(config)
+        db.initialize()
+        db.initialize()  # Should not raise
+        with db.cursor() as cursor:
+            cursor.execute("SELECT count(*) FROM students")
+            assert cursor.fetchone()[0] == 0
+
+    def test_get_connection_raises_if_not_initialized(self, config):
         db = Database(config)
         with pytest.raises(DatabaseError, match="Database not initialized"):
             db.get_connection()
 
-    @patch("student_management.db.mysql.connector.pooling.MySQLConnectionPool")
-    def test_cursor_context_manager(self, mock_pool_class):
-        mock_pool = MagicMock()
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_pool.get_connection.return_value = mock_conn
-        mock_conn.cursor.return_value = mock_cursor
-        mock_pool_class.return_value = mock_pool
-
-        config = DatabaseConfig()
+    def test_cursor_context_manager_commits(self, config):
         db = Database(config)
         db.initialize()
-
         with db.cursor() as cursor:
-            assert cursor == mock_cursor
+            cursor.execute(
+                "INSERT INTO students (roll_no, name, father_name, mother_name, phone_no) "
+                "VALUES (1, 'John', 'James', 'Jane', '1234567890')"
+            )
+        # Verify data persisted
+        with db.cursor() as cursor:
+            cursor.execute("SELECT name FROM students WHERE roll_no=1")
+            assert cursor.fetchone()[0] == "John"
 
-        mock_cursor.close.assert_called_once()
-        mock_conn.close.assert_called_once()
+    def test_cursor_context_manager_rollbacks_on_error(self, config):
+        db = Database(config)
+        db.initialize()
+        with pytest.raises(sqlite3.IntegrityError):
+            with db.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO students (roll_no, name, father_name, mother_name, phone_no) "
+                    "VALUES (1, 'John', 'James', 'Jane', '1234567890')"
+                )
+                # Duplicate roll_no should raise
+                cursor.execute(
+                    "INSERT INTO students (roll_no, name, father_name, mother_name, phone_no) "
+                    "VALUES (1, 'Jane', 'Bob', 'Alice', '0987654321')"
+                )
+        # First insert should have been rolled back
+        with db.cursor() as cursor:
+            cursor.execute("SELECT count(*) FROM students WHERE roll_no=1")
+            assert cursor.fetchone()[0] == 0
+
+    def test_get_connection_returns_sqlite_connection(self, config):
+        db = Database(config)
+        db.initialize()
+        conn = db.get_connection()
+        assert isinstance(conn, sqlite3.Connection)
+        conn.close()
