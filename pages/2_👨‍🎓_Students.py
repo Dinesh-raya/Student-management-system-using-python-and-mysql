@@ -82,6 +82,17 @@ def main():
             ]
             st.dataframe(data, use_container_width=True)
 
+            # CSV export
+            import pandas as pd
+            df = pd.DataFrame(data)
+            csv = df.to_csv(index=False)
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv,
+                file_name="students.csv",
+                mime="text/csv",
+            )
+
     elif mode == "Add Student":
         st.subheader("Add New Student")
         student = display_student_form()

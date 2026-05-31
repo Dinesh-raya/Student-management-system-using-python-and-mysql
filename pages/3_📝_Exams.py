@@ -107,6 +107,17 @@ def main():
                 },
             )
 
+            # CSV export
+            import pandas as pd
+            df = pd.DataFrame(data)
+            csv = df.to_csv(index=False)
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv,
+                file_name="exams.csv",
+                mime="text/csv",
+            )
+
     elif mode == "Add Exam":
         st.subheader("Add New Exam Record")
         exam = display_exam_form()
