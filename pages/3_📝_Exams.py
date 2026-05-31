@@ -15,7 +15,7 @@ VALID_GRADES = ["A", "B", "C", "D", "F"]
 
 def display_exam_form(exam: Exam | None = None) -> Exam | None:
     """Display exam form. Returns Exam if submitted, None otherwise."""
-    with st.form("exam_form", clear_on_submit=True):
+    with st.form("exam_form", clear_on_submit=exam is None):
         roll_no = st.number_input(
             "Roll No",
             min_value=1,
@@ -125,6 +125,7 @@ def main():
             try:
                 exam_service.create_exam(exam)
                 st.success(f"Exam record for {exam.name} added successfully!")
+                st.rerun()
             except AppError as e:
                 st.error(str(e))
 
@@ -146,6 +147,7 @@ def main():
                 try:
                     exam_service.update_exam(updated)
                     st.success(f"Exam record for {updated.name} updated successfully!")
+                    st.rerun()
                 except AppError as e:
                     st.error(str(e))
 

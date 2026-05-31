@@ -12,7 +12,7 @@ from app import get_services
 
 def display_student_form(student: Student | None = None) -> Student | None:
     """Display student form. Returns Student if submitted, None otherwise."""
-    with st.form("student_form", clear_on_submit=True):
+    with st.form("student_form", clear_on_submit=student is None):
         roll_no = st.number_input(
             "Roll No",
             min_value=1,
@@ -100,6 +100,7 @@ def main():
             try:
                 student_service.create_student(student)
                 st.success(f"Student {student.name} added successfully!")
+                st.rerun()
             except AppError as e:
                 st.error(str(e))
 
@@ -121,6 +122,7 @@ def main():
                 try:
                     student_service.update_student(updated)
                     st.success(f"Student {updated.name} updated successfully!")
+                    st.rerun()
                 except AppError as e:
                     st.error(str(e))
 
