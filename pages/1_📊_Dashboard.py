@@ -8,6 +8,7 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 from app import get_services
+from student_management.seed import seed_database
 
 
 def main():
@@ -34,6 +35,20 @@ def main():
             st.metric("Average Percentage", f"{avg_pct:.1f}%")
         else:
             st.metric("Average Percentage", "N/A")
+
+    # Seed data button
+    st.divider()
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        if st.button("🌱 Load Demo Data"):
+            count = seed_database(student_service, exam_service)
+            if count > 0:
+                st.success(f"Added {count} records!")
+                st.rerun()
+            else:
+                st.info("Demo data already loaded.")
+    with col2:
+        st.caption("Populates sample students and exam records for demonstration.")
 
     st.divider()
 
