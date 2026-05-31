@@ -28,21 +28,21 @@ class TestDatabase:
         db.initialize()
         assert os.path.exists(tmp_db_path)
 
-    def test_initialize_creates_students_table(self, config):
+    def test_initialize_creates_student_table(self, config):
         db = Database(config)
         db.initialize()
         with db.cursor() as cursor:
             cursor.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='students'"
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='student'"
             )
             assert cursor.fetchone() is not None
 
-    def test_initialize_creates_exams_table(self, config):
+    def test_initialize_creates_exam_table(self, config):
         db = Database(config)
         db.initialize()
         with db.cursor() as cursor:
             cursor.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='exams'"
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='exam'"
             )
             assert cursor.fetchone() is not None
 
@@ -51,7 +51,7 @@ class TestDatabase:
         db.initialize()
         db.initialize()  # Should not raise
         with db.cursor() as cursor:
-            cursor.execute("SELECT count(*) FROM students")
+            cursor.execute("SELECT count(*) FROM student")
             assert cursor.fetchone()[0] == 0
 
     def test_get_connection_raises_if_not_initialized(self, config):
@@ -64,12 +64,12 @@ class TestDatabase:
         db.initialize()
         with db.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO students (roll_no, name, father_name, mother_name, phone_no) "
+                "INSERT INTO student (roll_no, name, father_name, mother_name, phone_no) "
                 "VALUES (1, 'John', 'James', 'Jane', '1234567890')"
             )
         # Verify data persisted
         with db.cursor() as cursor:
-            cursor.execute("SELECT name FROM students WHERE roll_no=1")
+            cursor.execute("SELECT name FROM student WHERE roll_no=1")
             assert cursor.fetchone()[0] == "John"
 
     def test_cursor_context_manager_rollbacks_on_error(self, config):
@@ -78,17 +78,17 @@ class TestDatabase:
         with pytest.raises(sqlite3.IntegrityError):
             with db.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO students (roll_no, name, father_name, mother_name, phone_no) "
+                    "INSERT INTO student (roll_no, name, father_name, mother_name, phone_no) "
                     "VALUES (1, 'John', 'James', 'Jane', '1234567890')"
                 )
                 # Duplicate roll_no should raise
                 cursor.execute(
-                    "INSERT INTO students (roll_no, name, father_name, mother_name, phone_no) "
+                    "INSERT INTO student (roll_no, name, father_name, mother_name, phone_no) "
                     "VALUES (1, 'Jane', 'Bob', 'Alice', '0987654321')"
                 )
         # First insert should have been rolled back
         with db.cursor() as cursor:
-            cursor.execute("SELECT count(*) FROM students WHERE roll_no=1")
+            cursor.execute("SELECT count(*) FROM student WHERE roll_no=1")
             assert cursor.fetchone()[0] == 0
 
     def test_get_connection_returns_sqlite_connection(self, config):

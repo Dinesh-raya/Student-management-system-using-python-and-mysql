@@ -6,7 +6,7 @@ from student_management.config import DatabaseConfig
 from student_management.exceptions import DatabaseError
 
 _CREATE_TABLES_SQL = """
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS student (
     roll_no INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     father_name TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS students (
     email TEXT DEFAULT ''
 );
 
-CREATE TABLE IF NOT EXISTS exams (
+CREATE TABLE IF NOT EXISTS exam (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     roll_no INTEGER NOT NULL,
     name TEXT NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS exams (
     total_marks INTEGER NOT NULL,
     percentage REAL NOT NULL,
     grade TEXT NOT NULL,
-    FOREIGN KEY (roll_no) REFERENCES students(roll_no)
+    FOREIGN KEY (roll_no) REFERENCES student(roll_no)
 );
 """
 
